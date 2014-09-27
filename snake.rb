@@ -129,8 +129,6 @@ class Snake
 
   def hit_self?
     segments = Array.new(@segments)
-    require 'pry'
-    binding.pry
     if segments.length > 21
       segments.pop(10 * @speed)
       segments.each do |s|
