@@ -8,20 +8,20 @@ class GameWindow < Gosu::Window
     @snake = Snake.new(self)
     @food  = Food.new(self)
     @score = 0
-    @text_object = Gosu::Font.new(self, "Ubuntu Sans", 32)
+    @text_object = Gosu::Font.new(self, "Ubuntu Sans", 30)
   end
 
   def update
-    if button_down? Gosu::KbLeft && @snake.direction != "right"
+    if button_down? Gosu::KbLeft and @snake.direction != "right"
       @snake.direction = "left"
     end
-    if button_down? Gosu::KbRight && @snake.direction != "left"
+    if button_down? Gosu::KbRight and @snake.direction != "left"
       @snake.direction = "right"
     end
-    if button_down? Gosu::KbUp && @snake.direction != "down"
+    if button_down? Gosu::KbUp and @snake.direction != "down"
       @snake.direction = "up"
     end
-    if button_down? Gosu::KbDown && @snake.direction != "up"
+    if button_down? Gosu::KbDown and @snake.direction != "up"
       @snake.direction = "down"
     end
     if button_down? Gosu::KbEscape
@@ -39,11 +39,11 @@ class GameWindow < Gosu::Window
     end
 
     if @snake.hit_self?
-      @new_game = Gosu::Font.new(self, 'Ubuntu Sans', 32)
+      @new_game = Gosu::Font.new(self, 'Ubuntu Sans', 30)
     end
 
     if @snake.hit_wall?
-      @new_game = Gosu::Font.new(self, 'Ubuntu Sans', 32)
+      @new_game = Gosu::Font.new(self, 'Ubuntu Sans', 30)
     end
 
     if @new_game and button_down? Gosu::KbReturn
@@ -59,7 +59,7 @@ class GameWindow < Gosu::Window
   def draw
     if @new_game
       @new_game.draw("Final Score: #{@score}", 5, 200, 100)
-      @new_game.draw("Press Return to Try Again", 5, 200, 100)
+      @new_game.draw("Press Return to Try Again", 5, 250, 100)
       @new_game.draw("Or Esc to Close the game", 5, 300, 100)
     else
       @snake.update_position
@@ -72,15 +72,15 @@ end
 
 
 class Snake
-  attr_accessor :direction, :x, :y, :velocity, :length, :segments, :ticker
+  attr_accessor :direction, :xpos, :ypos, :velocity, :length, :segments, :ticker
 
   def initialize(window)
     @window = window
-    @x = 200
-    @y = 200
+    @xpos = 200
+    @ypos = 200
     @segments = []
     @direction = "right"
-    @head_segment = Segment.new(self, @window, [@x, @y])
+    @head_segment = Segment.new(self, @window, [@xpos, @ypos])
     @segments.push(@head_segment)
     @velocity = 2
     @length = 1
@@ -95,20 +95,20 @@ class Snake
 
   def add_segment
     if @direction == "left"
-      xpos = @head_segment.xpos - @speed
+      xpos = @head_segment.xpos - @velocity
       ypos = @head_segment.ypos
       new_segment = Segment.new(self, @window, [xpos, ypos])
     elsif @direction == "right"
-      xpos = @head_segment.xpos + @speed
+      xpos = @head_segment.xpos + @velocity
       ypos = @head_segment.ypos
       new_segment = Segment.new(self, @window, [xpos, ypos])
     elsif @direction == "up"
       xpos = @head_segment.xpos
-      ypos = @head_segment.ypos - @speed
+      ypos = @head_segment.ypos - @velocity
       new_segment = Segment.new(self, @window, [xpos, ypos])
     elsif @direction == "down"
       xpos = @head_segment.xpos
-      ypos = @head_segment.ypos + @speed
+      ypos = @head_segment.ypos + @velocity
       new_segment = Segment.new(self, @window, [xpos, ypos])
     end
 
@@ -121,31 +121,34 @@ class Snake
     @segments.shift(1) unless @ticker > 0
   end
 
-  def ate_food?
-    if Gosu::distance(@head_segment.x, @head_segment.y, food.x, food.y) < 10
+  def ate_food?(food)
+    if Gosu::distance(@head_segment.xpos, @head_segment.ypos, food.xpos, food.ypos) < 10
       return true
     end
   end
 
   def hit_self?
     segments = Array.new(@segments)
+    require 'pry'
+    binding.pry
     if segments.length > 21
       segments.pop(10 * @speed)
       segments.each do |s|
-        if Gosu::distance(@head_segment.x, @head_segment.y, s.x, s.y) < 11
-          puts "true, head: #{@head_segment.x}, #{@head_segment.y}; seg: #{s.x}, #{s.y}"
+        if Gosu::distance(@head_segment.xpos, @head_segment.ypos, s.xpos, s.ypos) < 11
+          puts "true, head: #{@head_segment.xpos}, #{@head_segment.ypos}; seg: #{s.xpos}, #{s.ypos}"
           return true
         else
           next
         end
       end
+      return false
     end
   end
 
   def hit_wall?
-    if @head_segment.x < 0 or @head_segment.x > 800
+    if @head_segment.xpos < 0 or @head_segment.xpos > 800
       return true
-    elsif @head_segment.y < 0 or @head_segmenty > 600
+    elsif @head_segment.ypos < 0 or @head_segment.ypos > 600
       return true
     else
       return false
@@ -154,31 +157,31 @@ class Snake
 end
 
 class Segment
-  attr_accessor :x, :y
+  attr_accessor :xpos, :ypos
   def initialize(snake, window, position)
     @window = window
-    @x = position[0]
-    @y = position[1]
+    @xpos = position[0]
+    @ypos = position[1]
   end
 
   def draw
-    @window.draw_quad(@x, @y, Gosu::Color::GREY, @x + 10, @y, Gosu::Color::GREY, @x, @y + 10, Gosu::Color::GREY, @x + 10, @y + 10, Gosu::Color::GREY)
+    @window.draw_quad(@xpos, @ypos, Gosu::Color::GRAY, @xpos + 10, @ypos, Gosu::Color::GRAY, @xpos, @ypos + 10, Gosu::Color::GRAY, @xpos + 10, @ypos + 10, Gosu::Color::GRAY)
   end
 end
 
 class Food
-  attr_reader :x, :y
+  attr_reader :xpos, :ypos
 
   def initialize(window)
     @window = window
-    @x = rand(10..800)
-    @y = rand(50..600)
+    @xpos = rand(10..800)
+    @ypos = rand(50..600)
   end
 
   def draw
-    @window.draw_quad(@x, @y, Gosu::Color::YELLOW, @x, @y + 10, Gosu::Color::YELOW, @x + 10, @y, Gosu::Color::YELLOW, @x + 10, @y + 10, Gosu::Color::YELLOW)
+    @window.draw_quad(@xpos, @ypos, Gosu::Color::YELLOW, @xpos + 10 , @ypos, Gosu::Color::YELLOW, @xpos, @ypos + 10, Gosu::Color::YELLOW, @xpos + 10, @ypos + 10, Gosu::Color::YELLOW)
   end
 end
 
-window = GameWindow.new
+window = GameWindow.new(800, 600, false)
 window.show
